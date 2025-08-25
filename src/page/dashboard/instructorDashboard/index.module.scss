@@ -1,0 +1,77 @@
+.dashboardLayout {
+  min-height: 100vh;
+  background: #f5f9ff;
+}
+
+.sidebar {
+  background: #fff;
+  border-right: 1px solid #f0f0f0;
+}
+
+.profileBox {
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar {
+  background-color: #1677ff !important;
+  font-weight: bold;
+}
+
+.subText {
+  font-size: 12px;
+  color: #888;
+}
+
+.header {
+  background: #fff;
+  padding: 0 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.title {
+  margin: 0 !important;
+  color: #1677ff !important;
+}
+
+.content {
+  margin: 24px;
+  background: #fff;
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Chat Drawer */
+.chatBox {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.inputBox {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.messageInstructor {
+  justify-content: flex-end;
+  background: #e6f4ff;
+  border-radius: 8px;
+  padding: 6px 12px;
+  margin: 4px 0;
+}
+
+.messageStudent {
+  justify-content: flex-start;
+  background: #fafafa;
+  border-radius: 8px;
+  padding: 6px 12px;
+  margin: 4px 0;
+}

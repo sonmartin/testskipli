@@ -1,0 +1,46 @@
+.wrapper {
+  text-align: left;
+}
+
+.modal {
+  .ant-modal-content {
+    border-radius: 12px;
+    padding: 20px;
+  }
+
+  .ant-modal-header {
+    border-radius: 12px 12px 0 0;
+    background: linear-gradient(90deg, #1890ff, #40a9ff);
+    color: white;
+    .ant-modal-title {
+      color: white;
+      font-weight: 600;
+      font-size: 18px;
+    }
+  }
+}
+
+.form {
+  margin-top: 10px;
+
+  .ant-form-item-label > label {
+    font-weight: 500;
+    color: #333;
+  }
+
+  input {
+    border-radius: 6px;
+  }
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+
+  button {
+    min-width: 90px;
+    border-radius: 6px;
+  }
+}

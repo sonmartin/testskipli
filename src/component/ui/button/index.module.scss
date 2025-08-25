@@ -1,0 +1,31 @@
+.appButton {
+  font-weight: 600;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+}
+
+.primary {
+  background-color: #1890ff !important;
+  border-color: #1890ff !important;
+  color: #fff !important;
+
+  &:hover {
+    background-color: #40a9ff !important;
+    border-color: #40a9ff !important;
+  }
+}
+
+.danger {
+  background-color: #ff4d4f !important;
+  border-color: #ff4d4f !important;
+  color: #fff !important;
+
+  &:hover {
+    background-color: #ff7875 !important;
+    border-color: #ff7875 !important;
+  }
+}
