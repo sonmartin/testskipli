@@ -28,7 +28,6 @@ const ensureUserExists = async (phone: string, role: "instructor" | "student") =
 };
 
 router.post("/createAccessCode", async (req: Request, res: Response) => {
-  console.log("📨 Hit /api/createAccessCode", req.body);
   try {
     const phone = normalizePhone(req.body?.phone);
     if (!phone) return res.status(400).json({ message: "Phone is required" });

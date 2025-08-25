@@ -8,7 +8,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { useSendCode, useVerifyCode } from "../../hooks/authQuery";
 import { toast } from "react-toastify";
-import type { PhoneStepData, VerifyStepData } from "../../models/auth";
+import type { PhoneStepData, VerifyStepData } from "../../types/auth";
 import { useNavigate } from "react-router-dom";
 import { routes } from "../../routers/routes";
 
@@ -24,12 +24,12 @@ const schema = yup.object().shape({
 });
 
 const LoginBox: React.FC = () => {
-  const Navigate = useNavigate();
+    const Navigate = useNavigate();
 
     const [open, setOpen] = useState(false);
     const [step, setStep] = useState<"phone" | "verify">("phone");
-    const  sendCodeMutation  = useSendCode();
-    const  verifyCodeMutation  = useVerifyCode();
+    const sendCodeMutation = useSendCode();
+    const verifyCodeMutation = useVerifyCode();
     const { control, handleSubmit, reset, getValues } = useForm({
         resolver: yupResolver(schema),
         defaultValues: {
@@ -39,36 +39,36 @@ const LoginBox: React.FC = () => {
         context: { step },
     });
 
-  const onSubmit = async (data: FormData) => {
-  if (step === "phone") {
-    const phoneData = data as PhoneStepData;
-    try {
-      const res = await sendCodeMutation.mutateAsync({ phone: phoneData.phone });
-      toast.success(`Your code: ${res.data.code}`);
-      localStorage.setItem("phone", phoneData.phone);
-      setStep("verify");
-    } catch (err: any) {
-      toast.error("Failed to send code. Please try again.");
-    }
-  } else if (step === "verify") {
-    const verifyData = data as VerifyStepData;
-    try {
-      const res =  await verifyCodeMutation.mutateAsync({
-        phone: verifyData.phone,
-        code: verifyData.code,
-      });
-      localStorage.setItem("token", res.data.token);
-      if(res.data.role === "instructor"){
-        Navigate(routes.dashboard.instructor)
-      }else{
-        Navigate(routes.dashboard.student)
-      }
-      toast.success("Code verified successfully");
-    } catch (err: any) {
-      toast.error("Failed to verify code. Please try again.");
-    }
-  }
-};
+    const onSubmit = async (data: FormData) => {
+        if (step === "phone") {
+            const phoneData = data as PhoneStepData;
+            try {
+                const res = await sendCodeMutation.mutateAsync({ phone: phoneData.phone });
+                toast.success(`Your code: ${res.data.code}`);
+                localStorage.setItem("phone", phoneData.phone);
+                setStep("verify");
+            } catch (err: any) {
+                toast.error("Failed to send code. Please try again.");
+            }
+        } else if (step === "verify") {
+            const verifyData = data as VerifyStepData;
+            try {
+                const res = await verifyCodeMutation.mutateAsync({
+                    phone: verifyData.phone,
+                    code: verifyData.code,
+                });
+                localStorage.setItem("token", res.data.token);
+                if (res.data.role === "instructor") {
+                    Navigate(routes.dashboard.instructor)
+                } else {
+                    Navigate(routes.dashboard.student)
+                }
+                toast.success("Code verified successfully");
+            } catch (err: any) {
+                toast.error("Failed to verify code. Please try again.");
+            }
+        }
+    };
 
 
     const handleBack = () => {
@@ -101,7 +101,7 @@ const LoginBox: React.FC = () => {
                     {step === "phone" && (
                         <>
                             <h2 className={styles.title}>Sign In</h2>
-                            <p className = {styles.titlesub}>Please enter your phone to sign in</p>
+                            <p className={styles.titlesub}>Please enter your phone to sign in</p>
                             <div className={styles.wrapperForm}>
                                 <InputField
                                     name="phone"
@@ -109,6 +109,8 @@ const LoginBox: React.FC = () => {
                                     placeholder="Enter your phone number"
                                     label="Your phone number"
                                     className={styles.inputNumber}
+                                    rules={{ required: true }}
+
                                 />
                                 <Button
                                     type="primary"
@@ -124,7 +126,7 @@ const LoginBox: React.FC = () => {
                     {step === "verify" && (
                         <>
                             <h2 className={styles.title}>Phone Verification</h2>
-                            <p  className = {styles.titlesub}>Enter the code sent to {getValues("phone")}</p>
+                            <p className={styles.titlesub}>Enter the code sent to {getValues("phone")}</p>
                             <div className={styles.wrapperForm}>
                                 <InputField
                                     name="code"
@@ -132,6 +134,8 @@ const LoginBox: React.FC = () => {
                                     placeholder="Enter verification code"
                                     label="Code"
                                     className={styles.inputCode}
+                                    rules={{ required: true }}
+
                                 />
                                 <Button
                                     type="primary"

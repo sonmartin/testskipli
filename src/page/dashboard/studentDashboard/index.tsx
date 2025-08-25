@@ -1,201 +1,138 @@
 import React, { useState } from "react";
 import {
-  Layout,
-  Menu,
-  Table,
-  Button,
-  Typography,
-  Avatar,
-  Drawer,
-  List,
-  Input,
-  Space,
-  Form,
+    Layout,
+    Menu,
+    Table,
+    Button,
+    Typography,
+    Avatar,
+
+    Tag,
 } from "antd";
 import {
-  BookOutlined,
-  MessageOutlined,
-  LogoutOutlined,
-  UserOutlined,
-  CheckOutlined,
+    BookOutlined,
+    MessageOutlined,
+    LogoutOutlined,
+    UserOutlined,
+    CheckOutlined,
 } from "@ant-design/icons";
-
 import styles from "./index.module.scss";
-
+import { useMarkLessonDone, useMyLessons } from "../../../hooks/dashboardQuery";
+import Profile from "./profile";
+import ChatStudent from "./chat";
+import { useNavigate } from "react-router-dom";
 const { Header, Content, Sider } = Layout;
 const { Title } = Typography;
 
 const StudentDashboard: React.FC = () => {
-  const [activeKey, setActiveKey] = useState("lessons");
-  const [chatOpen, setChatOpen] = useState(false);
+    const navigate = useNavigate();
+    const [activeKey, setActiveKey] = useState("lessons");
+    const [chatOpen, setChatOpen] = useState(false);
 
-  // Fake data lessons
-  const [lessons, setLessons] = useState([
-    { id: 1, title: "Math - Algebra", status: "Pending" },
-    { id: 2, title: "Physics - Mechanics", status: "Pending" },
-  ]);
+    const phone = localStorage.getItem("phone") || "";
 
-  const [messages, setMessages] = useState([
-    { sender: "Instructor", text: "Hello, welcome to the course 👋" },
-    { sender: "Student", text: "Thank you teacher!" },
-  ]);
-  const [inputValue, setInputValue] = useState("");
+    const { data, isLoading } = useMyLessons(phone);
+    const lessons = data?.data?.lessons || [];
 
-  const handleSend = () => {
-    if (!inputValue.trim()) return;
-    setMessages([...messages, { sender: "Student", text: inputValue }]);
-    setInputValue("");
-  };
+    const { mutate: markLessonDone, isPending: isMarking } = useMarkLessonDone();
 
-  const handleMarkDone = (id: number) => {
-    setLessons(
-      lessons.map((l) =>
-        l.id === id ? { ...l, status: "Done ✅" } : l
-      )
-    );
-  };
+    const lessonColumns = [
+        { title: "Lesson", dataIndex: "title", key: "title" },
+        { title: "Description", dataIndex: "description", key: "description" },
 
-  const lessonColumns = [
-    { title: "ID", dataIndex: "id", key: "id" },
-    { title: "Lesson", dataIndex: "title", key: "title" },
-    { title: "Status", dataIndex: "status", key: "status" },
-    {
-      title: "Action",
-      key: "action",
-      render: (_: any, record: any) => (
-        <Button
-          type="link"
-          icon={<CheckOutlined />}
-          disabled={record.status === "Done ✅"}
-          onClick={() => handleMarkDone(record.id)}
-        >
-          Mark Done
-        </Button>
-      ),
-    },
-  ];
-
-  return (
-    <Layout className={styles.dashboardLayout}>
-      {/* Sidebar */}
-      <Sider className={styles.sidebar} width={220}>
-        <div className={styles.profileBox}>
-          <Avatar size={48} className={styles.avatar}>
-            ST
-          </Avatar>
-          <div>
-            <b>Student</b>
-            <br />
-            <span className={styles.subText}>Dashboard</span>
-          </div>
-        </div>
-
-        <Menu
-          mode="inline"
-          selectedKeys={[activeKey]}
-          onClick={(e) => {
-            if (e.key === "messages") setChatOpen(true);
-            else setActiveKey(e.key);
-          }}
-          items={[
-            { key: "lessons", icon: <BookOutlined />, label: "My Lessons" },
-            { key: "profile", icon: <UserOutlined />, label: "Profile" },
-            { key: "messages", icon: <MessageOutlined />, label: "Messages" },
-          ]}
-        />
-      </Sider>
-
-      {/* Main */}
-      <Layout>
-        <Header className={styles.header}>
-          <Title level={3} className={styles.title}>
-            Student Dashboard
-          </Title>
-          <Button
-            type="primary"
-            danger
-            icon={<LogoutOutlined />}
-            shape="round"
-          >
-            Logout
-          </Button>
-        </Header>
-
-        <Content className={styles.content}>
-          {activeKey === "lessons" && (
-            <div>
-              <Title level={4}>📘 My Lessons</Title>
-              <Table
-                dataSource={lessons}
-                columns={lessonColumns}
-                rowKey="id"
-                bordered
-              />
-            </div>
-          )}
-
-          {activeKey === "profile" && (
-            <div>
-              <Title level={4}>👤 Edit Profile</Title>
-              <Form layout="vertical" style={{ maxWidth: 400 }}>
-                <Form.Item label="Name" name="name">
-                  <Input placeholder="Enter your name" />
-                </Form.Item>
-                <Form.Item label="Email" name="email">
-                  <Input placeholder="Enter your email" />
-                </Form.Item>
-                <Form.Item label="Phone" name="phone">
-                  <Input placeholder="Enter your phone" />
-                </Form.Item>
-                <Button type="primary" shape="round">
-                  Save Changes
+        {
+            title: "Status",
+            dataIndex: "completed",
+            key: "completed",
+            render: (val: boolean) =>
+                val ? <Tag color="green">Completed</Tag> : <Tag color="orange">Pending</Tag>,
+        },
+        {
+            title: "Action",
+            key: "action",
+            render: (_: any, record: any) => (
+                <Button
+                    type="link"
+                    icon={<CheckOutlined />}
+                    disabled={record.completed}
+                    onClick={() =>
+                        markLessonDone({ phone, lessonId: record.id })
+                    }
+                >
+                    Mark Done
                 </Button>
-              </Form>
-            </div>
-          )}
-        </Content>
-      </Layout>
+            ),
+        },
+    ];
+    const handleLogout = () => {
+        localStorage.removeItem("token");
+        localStorage.removeItem("phone");
+        navigate("/login", { replace: true });
+    };
+    return (
+        <Layout className={styles.dashboardLayout}>
+            <Sider className={styles.sidebar} width={220}>
+                <div className={styles.profileBox}>
+                    <Avatar size={48} className={styles.avatar}>
+                        ST
+                    </Avatar>
+                    <div>
+                        <b>Student</b>
+                        <br />
+                        <span className={styles.subText}>Dashboard</span>
+                    </div>
+                </div>
 
-      {/* Drawer Chat */}
-      <Drawer
-        title="💬 Chat with Instructor"
-        placement="right"
-        width={400}
-        onClose={() => setChatOpen(false)}
-        open={chatOpen}
-      >
-        <div className={styles.chatBox}>
-          <List
-            dataSource={messages}
-            renderItem={(item, index) => (
-              <List.Item
-                key={index}
-                className={
-                  item.sender === "Student"
-                    ? styles.messageStudent
-                    : styles.messageInstructor
-                }
-              >
-                <b>{item.sender}: </b> {item.text}
-              </List.Item>
-            )}
-          />
+                <Menu
+                    mode="inline"
+                    selectedKeys={[activeKey]}
+                    onClick={(e) => {
+                        if (e.key === "messages") setChatOpen(true);
+                        else setActiveKey(e.key);
+                    }}
+                    items={[
+                        { key: "lessons", icon: <BookOutlined />, label: "My Lessons" },
+                        { key: "profile", icon: <UserOutlined />, label: "Profile" },
+                        { key: "messages", icon: <MessageOutlined />, label: "Messages" },
+                    ]}
+                />
+            </Sider>
+            <Layout>
+                <Header className={styles.header}>
+                    <Title level={3} className={styles.title}>
+                        Student Dashboard
+                    </Title>
+                    <Button type="primary" danger icon={<LogoutOutlined />} shape="round"
+                        onClick={handleLogout}
+                    >
+                        Logout
+                    </Button>
+                </Header>
 
-          <div className={styles.inputBox}>
-            <Input
-              placeholder="Type a message..."
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onPressEnter={handleSend}
+                <Content className={styles.content}>
+                    {activeKey === "lessons" && (
+                        <div>
+                            <Title level={4}>My Lessons</Title>
+                            <Table
+                                dataSource={lessons}
+                                columns={lessonColumns}
+                                rowKey="id"
+                                bordered
+                                loading={isLoading || isMarking}
+                            />
+                        </div>
+                    )}
+                    {activeKey === "profile" && <Profile />}
+                </Content>
+            </Layout>
+            <ChatStudent
+                open={chatOpen}
+                onClose={() => setChatOpen(false)}
+                phone={phone}
             />
-            <Button type="primary" onClick={handleSend}>
-              Send
-            </Button>
-          </div>
-        </div>
-      </Drawer>
-    </Layout>
-  );
+
+        </Layout>
+    );
 };
 
 export default StudentDashboard;

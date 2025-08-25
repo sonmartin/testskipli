@@ -47,31 +47,4 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-/* Chat Drawer */
-.chatBox {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
 
-.inputBox {
-  display: flex;
-  gap: 8px;
-  margin-top: auto;
-}
-
-.messageInstructor {
-  justify-content: flex-end;
-  background: #e6f4ff;
-  border-radius: 8px;
-  padding: 6px 12px;
-  margin: 4px 0;
-}
-
-.messageStudent {
-  justify-content: flex-start;
-  background: #fafafa;
-  border-radius: 8px;
-  padding: 6px 12px;
-  margin: 4px 0;
-}

@@ -9,7 +9,7 @@
 .clickText {
   display: flex;
   align-items: center;
-  gap: 10px; // khoảng cách logo và chữ
+  gap: 10px; 
   font-size: 24px;
   font-weight: 700;
   color: #1677ff;
@@ -17,17 +17,16 @@
   user-select: none;
   position: relative;
 
-  // animation xuất hiện
   animation: fadeIn 1s ease forwards;
 
-  // hiệu ứng hover
+
   transition: all 0.3s ease;
   &:hover {
     color: #000;
     transform: scale(1.05);
   }
 
-  // underline hiệu ứng chạy khi hover
+
   &::after {
     content: "";
     position: absolute;

@@ -4,17 +4,25 @@
   margin-bottom: 20px;
   width: 100%;
 
-  label {
-    margin-bottom: 6px;
-    font-size: 16px;
-    color: #555;
-  }
+.label {
+  font-weight: 500;
+  margin-bottom: 6px;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.required {
+  color: #ff4d4f;
+  font-size: 14px;
+}
+
 
   :global(.ant-input) {
     border-radius: 50px !important;
     height: 44px;
     padding: 0 16px;
-    border: 1px solid #ccc !important;
     transition: all 0.2s;
 
     &:hover,

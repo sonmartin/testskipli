@@ -2,16 +2,16 @@ import React from "react";
 import { Input } from "antd";
 import styles from "./index.module.scss";
 import clsx from "clsx";
-import { Controller, type Control } from "react-hook-form";
+import { Controller, type Control, type RegisterOptions } from "react-hook-form";
 
 interface InputFieldProps {
   className?: string;
   label: string;
   placeholder?: string;
   type?: string;
-  name: string; 
-  control: Control<any>; 
-  rules?: object; 
+  name: string;
+  control: Control<any>;
+  rules?: RegisterOptions
 }
 
 const InputField: React.FC<InputFieldProps> = ({
@@ -23,9 +23,19 @@ const InputField: React.FC<InputFieldProps> = ({
   control,
   rules,
 }) => {
+  const isRequired =
+    typeof rules?.required === "boolean"
+      ? rules.required
+      : typeof rules?.required === "object"
+      ? rules.required.value
+      : false;
+
   return (
     <div className={styles.inputField}>
-      <label className={styles.label}>{label}</label>
+      <label className={styles.label}>
+        {label}
+        {isRequired && <span className={styles.required}>*</span>}
+      </label>
       <Controller
         name={name}
         control={control}

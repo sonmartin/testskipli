@@ -6,9 +6,6 @@ import {
     Typography,
     Avatar,
     Button,
-    Drawer,
-    List,
-    Input,
     Space,
     Modal,
 } from "antd";
@@ -21,65 +18,86 @@ import {
     LogoutOutlined,
     UserAddOutlined,
 } from "@ant-design/icons";
-
 import styles from "./index.module.scss";
 import ButtonCommon from "../../../component/ui/button";
 import CreateUpdate from "./createupdate";
+import { useDeleteStudent, useStudents } from "../../../hooks/dashboardQuery";
+import { toast } from "react-toastify";
+import type { StudentPayload } from "../../../types/dashboard";
+import ManageLessons from "./managelessons";
+import ChatInstructor from "./chat";
+import { useNavigate } from "react-router-dom";
 
 const { Header, Content, Sider } = Layout;
 const { Title } = Typography;
 
 const InstructorDashboard: React.FC = () => {
-    const [activeKey, setActiveKey] = useState("students");
-    const [chatOpen, setChatOpen] = useState(false);
-const [open, setOpen] = useState(false)
-    // Fake data student
-    const [students, setStudents] = useState([
-        { id: 1, name: "Nguyen Van A", email: "a@student.com" },
-        { id: 2, name: "Tran Thi B", email: "b@student.com" },
-    ]);
-
-    const [messages, setMessages] = useState([
-        { sender: "Student", text: "Hello teacher 👋" },
-        { sender: "Instructor", text: "Hi, how can I help you?" },
-    ]);
-    const [inputValue, setInputValue] = useState("");
-
-    const handleSend = () => {
-        if (!inputValue.trim()) return;
-        setMessages([...messages, { sender: "Instructor", text: inputValue }]);
-        setInputValue("");
+    const navigate = useNavigate();
+    const { data, isLoading } = useStudents();
+    const students = data?.data?.users || [];
+    const deleteMutation = useDeleteStudent();
+    const [activeKey, setActiveKey] = useState<string>("students");
+    const [chatOpen, setChatOpen] = useState<boolean>(false);
+    const [open, setOpen] = useState<boolean>(false)
+    const [selectedStudent, setSelectedStudent] = useState<StudentPayload | null>(null);
+    const [modal, contextHolder] = Modal.useModal();
+    const handleOpenCU = (record?: StudentPayload) => {
+        if (record) {
+            setSelectedStudent(record);
+        } else {
+            setSelectedStudent(null);
+        }
+        setOpen(true);
     };
 
-    const handleDelete = (id: number) => {
-        Modal.confirm({
+
+    const handleDelete = (phone: string) => {
+        modal.confirm({
             title: "Confirm Delete",
-            content: "Are you sure you want to delete this student?",
+            content: `Are you sure you want to delete student with phone: ${phone}?`,
             okText: "Delete",
             okType: "danger",
-            onOk: () => {
-                setStudents(students.filter((s) => s.id !== id));
+            onOk: async () => {
+                try {
+                    await deleteMutation.mutateAsync(phone);
+                    toast.success("Deleted student successfully");
+                } catch (error: any) {
+                    toast.error(error?.response?.data?.message || "Delete failed");
+                }
             },
         });
     };
 
     const studentColumns = [
-        { title: "ID", dataIndex: "id", key: "id" },
+        { title: "Phone", dataIndex: "phone", key: "phone" },
         { title: "Name", dataIndex: "name", key: "name" },
         { title: "Email", dataIndex: "email", key: "email" },
+        { title: "Role", dataIndex: "role", key: "role" },
         {
             title: "Action",
             key: "action",
-            render: (_: any, record: any) => (
+            render: (_: any, record: StudentPayload) => (
                 <Space>
-                    <ButtonCommon size="small" color="primary" icon={<EditOutlined />}>
+                    <ButtonCommon
+                        size="small"
+                        color="primary"
+                        onClick={() => {
+                            setSelectedStudent(record);
+                            setActiveKey("lessons");
+                        }}
+                    >
+                        Manage Lessons
+                    </ButtonCommon>
+                    <ButtonCommon size="small" color="primary" icon={<EditOutlined />}
+                        onClick={() => handleOpenCU(record)}
+                    >
                         Edit
                     </ButtonCommon>
                     <ButtonCommon
-                       size="small"
-                       color="danger"
+                        size="small"
+                        color="danger"
                         icon={<DeleteOutlined />}
-                        onClick={() => handleDelete(record.id)}
+                        onClick={() => handleDelete(record.phone)}
                     >
                         Delete
                     </ButtonCommon>
@@ -88,9 +106,44 @@ const [open, setOpen] = useState(false)
         },
     ];
 
+    const studentChatColumns = (
+        setSelectedStudent: (student: StudentPayload) => void,
+        setChatOpen: (open: boolean) => void
+    ) => [
+            {
+                title: "Name",
+                dataIndex: "name",
+                key: "name",
+            },
+            {
+                title: "Phone",
+                dataIndex: "phone",
+                key: "phone",
+            },
+            {
+                title: "Chat",
+                key: "action",
+                render: (_: any, record: StudentPayload) => (
+                    <Button
+                        type="link"
+                        onClick={() => {
+                            setSelectedStudent(record);
+                            setChatOpen(true);
+                        }}
+                    >
+                         Chat
+                    </Button>
+                ),
+            },
+        ];
+
+    const handleLogout = () => {
+        localStorage.removeItem("token");
+        localStorage.removeItem("phone");
+        navigate("/login", { replace: true });
+    };
     return (
         <Layout className={styles.dashboardLayout}>
-            {/* Sidebar */}
             <Sider className={styles.sidebar} width={220}>
                 <div className={styles.profileBox}>
                     <Avatar size={48} className={styles.avatar}>
@@ -107,8 +160,7 @@ const [open, setOpen] = useState(false)
                     mode="inline"
                     selectedKeys={[activeKey]}
                     onClick={(e) => {
-                        if (e.key === "messages") setChatOpen(true);
-                        else setActiveKey(e.key);
+                        setActiveKey(e.key);
                     }}
                     items={[
                         { key: "students", icon: <TeamOutlined />, label: "Manage Students" },
@@ -118,7 +170,6 @@ const [open, setOpen] = useState(false)
                 />
             </Sider>
 
-            {/* Main */}
             <Layout>
                 <Header className={styles.header}>
                     <Title level={3} className={styles.title}>
@@ -128,6 +179,7 @@ const [open, setOpen] = useState(false)
                         size="medium"
                         icon={<LogoutOutlined />}
                         color="danger"
+                        onClick={handleLogout}
                     >
                         Logout
                     </ButtonCommon>
@@ -141,12 +193,13 @@ const [open, setOpen] = useState(false)
                                     icon={<UserAddOutlined />}
                                     color="primary"
                                     size="large"
-                                    onClick={() => setOpen(true)}
+                                    onClick={() => handleOpenCU()}
                                 >
                                     Add New Student
                                 </ButtonCommon>
                             </div>
                             <Table
+                                loading={isLoading}
                                 dataSource={students}
                                 columns={studentColumns}
                                 rowKey="id"
@@ -157,55 +210,36 @@ const [open, setOpen] = useState(false)
 
                     {activeKey === "lessons" && (
                         <div>
-                            <Title level={4}>Manage Lessons</Title>
-                            <p>📘 Here you can assign and manage lessons.</p>
+                            {selectedStudent ? (
+                                <ManageLessons studentPhone={selectedStudent.phone} />
+                            ) : (
+                                <p style={{ padding: 20 }}>Please select a student to manage lessons.</p>
+                            )}
                         </div>
                     )}
+
+                    {activeKey === "messages" && (
+                        <Table
+                            loading={isLoading}
+                            dataSource={students}
+                            columns={studentChatColumns(setSelectedStudent, setChatOpen)}
+                        />
+                    )}
+
                 </Content>
             </Layout>
 
-            {/* Drawer Chat */}
-            <Drawer
-                title="💬 Real-Time Chat"
-                placement="right"
-                width={400}
-                onClose={() => setChatOpen(false)}
+            <ChatInstructor
                 open={chatOpen}
-            >
-                <div className={styles.chatBox}>
-                    <List
-                        dataSource={messages}
-                        renderItem={(item, index) => (
-                            <List.Item
-                                key={index}
-                                className={
-                                    item.sender === "Instructor"
-                                        ? styles.messageInstructor
-                                        : styles.messageStudent
-                                }
-                            >
-                                <b>{item.sender}: </b> {item.text}
-                            </List.Item>
-                        )}
-                    />
+                onClose={() => setChatOpen(false)}
+                student={selectedStudent}
+            />
 
-                    <div className={styles.inputBox}>
-                        <Input
-                            placeholder="Type a message..."
-                            value={inputValue}
-                            onChange={(e) => setInputValue(e.target.value)}
-                            onPressEnter={handleSend}
-                        />
-                        <Button type="primary" onClick={handleSend}>
-                            Send
-                        </Button>
-                    </div>
-                </div>
-            </Drawer>
             {open && (
 
-            <CreateUpdate open={open} setOpen={setOpen}/>
+                <CreateUpdate open={open} setOpen={setOpen} record={selectedStudent} />
             )}
+            {contextHolder}
         </Layout>
     );
 };
